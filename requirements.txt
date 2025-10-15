@@ -1,0 +1,6 @@
+# Minimal runtime dependencies for projects/webscrapping.py
+# Install with:
+#   pip install -r requirements.txt
+
+requests
+beautifulsoup4
