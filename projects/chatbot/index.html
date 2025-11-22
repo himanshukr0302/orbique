@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Simple Chatbot</title>
+	<style>
+		body { font-family: Arial, sans-serif; max-width:720px; margin:20px auto; }
+		#chat { border:1px solid #ddd; padding:12px; height:300px; overflow:auto; background:#fafafa }
+		.msg { margin:6px 0 }
+		.you { color:#111 }
+		.bot { color:#0b6; }
+		form { display:flex; gap:8px; margin-top:10px }
+		input { flex:1; padding:8px }
+		button { padding:8px 12px }
+	</style>
+</head>
+<body>
+	<h1>Chatbot</h1>
+	<div id="suggestions">
+		<h3>Try these questions:</h3>
+		<div id="suggestion-list">
+			<button class="suggest">Hello</button>
+			<button class="suggest">What's your name?</button>
+			<button class="suggest">How old are you?</button>
+			<button class="suggest">What is the capital?</button>
+			<button class="suggest">Are rooms available?</button>
+			<button class="suggest">How much do you charge?</button>
+			<button class="suggest">Tourist places?</button>
+			<button class="suggest">Is cab available?</button>
+			<button class="suggest">Is food available?</button>
+			<button class="suggest">Is wifi available?</button>
+			<button class="suggest">Payment methods?</button>
+			<button class="suggest">Cancellation policy?</button>
+			<button class="suggest">Parking?</button>
+		</div>
+	</div>
+	<div id="chat"></div>
+	<form id="chat-form">
+		<input id="message" type="text" autocomplete="off" placeholder="Ask something..." />
+		<button type="submit">Send</button>
+	</form>
+
+	<script>
+		const chat = document.getElementById('chat');
+		const form = document.getElementById('chat-form');
+		const input = document.getElementById('message');
+
+		function addMessage(cls, text) {
+			const el = document.createElement('div');
+			el.className = 'msg ' + cls;
+			el.textContent = text;
+			chat.appendChild(el);
+			chat.scrollTop = chat.scrollHeight;
+		}
+
+		async function sendMessage(msg) {
+			if (!msg) return;
+			addMessage('you', 'You: ' + msg);
+			try {
+				const res = await fetch('/ask', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ message: msg })
+				});
+				if (!res.ok) {
+					addMessage('bot', 'Bot: Error ' + res.status);
+					return;
+				}
+				const data = await res.json();
+				addMessage('bot', 'Bot: ' + data.response);
+			} catch (err) {
+				addMessage('bot', 'Bot: Error connecting to server');
+			}
+		}
+
+		form.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const msg = input.value.trim();
+			if (!msg) return;
+			input.value = '';
+			sendMessage(msg);
+		});
+
+		// Wire up suggestion buttons
+		document.querySelectorAll('.suggest').forEach(btn => {
+			btn.addEventListener('click', () => {
+				const text = btn.textContent.trim();
+				// Send immediately when clicking suggestion
+				sendMessage(text);
+			});
+		});
+	</script>
+</body>
+</html>
